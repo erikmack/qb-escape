@@ -1,0 +1,159 @@
+#!/usr/bin/python
+#
+# A simple QuickBooks transaction importer
+#
+# See https://lwn.net/Articles/729087/ for the article that describes
+# this program.
+#
+# Copyright 2017 Jonathan Corbet.
+# This program may be distributed under the terms of the GNU General
+# Public License, version 2 or later.
+#
+# This program is provided with no warranty of any kind.  You, and only
+# you, are responsible for the integrity of your accounting data.
+#
+import sys, csv, argparse
+import remap
+import gnucash
+from gnucash import gnucash_business, gnucash_core_c
+
+#
+# Turn a float value into the gnucash equivalent.
+#
+SCALE = 1000
+def GCVal(value):
+    dollars, cents = map(int, value.split('.'))
+    ival = dollars*SCALE
+    if ival > 0:
+        ival += cents*(SCALE/100)
+    else:
+        ival -= cents*(SCALE/100)
+    return gnucash.GncNumeric(ival, SCALE)
+#
+# Gnucash implements an account hierarchy but makes us walk it
+# ourselves.
+#
+def LookupAccount(path):
+    acct = root_acct
+    for component in path.split('/'):
+        acct = acct.lookup_by_name(component)
+        if not acct:
+            return None
+    return acct
+
+def SetDate(trans, date):
+    month, day, year = map(int, date.split('/'))
+    trans.SetDate(day, month, year)
+
+def ReadTransaction(reader):
+    entry = reader.next()
+    #
+    # QB helpfully puts in a couple of crap lines with an empty
+    # name.  Drop them.
+    #
+    if entry['']:
+        return
+    #
+    # Set up the overall transaction.
+    #
+    trans = gnucash.Transaction(book)
+    trans.BeginEdit()
+    trans.SetCurrency(dollars)
+    trans.SetDescription(entry['Name'])
+    if entry['Num']:
+        trans.SetNum(entry['Num'])
+    SetDate(trans, entry['Date'])
+    reconciled = 'y'
+    if entry['Clr'] != 'X':
+        reconciled = 'n'
+    #
+    # Basic theory here: QB dumps a pile of splits into the file
+    # without grouping them into transactions.  The signal that we've
+    # found the last split is that the balance goes to zero.  This
+    # *could* screw us, since that is possible in a legitimate transaction.
+    # But with luck it won't actually happen.
+    #
+    # Note the the overall entry is also the first split.
+    #
+    while True:
+        #
+        # Occasionally the amount is an empty string.  That seems to come
+        # from a zeroed-out split that wasn't removed from the transaction;
+        # simply ignore it.
+        #
+        if not entry['Amount']:
+            entry = reader.next()
+            continue
+        #
+        # Put together the split info.
+        #
+        split = gnucash.Split(book)
+        split.SetValue(GCVal(entry['Amount']))
+        account = LookupAccount(remap.remap(entry['Account']))
+        if not account:
+            print 'Unknown account', entry['Account']
+            account = LookupAccount('Miscellaneous')
+        split.SetAccount(account)
+        split.SetMemo(entry['Memo'])
+        split.SetParent(trans)
+        gnucash_core_c.xaccSplitSetReconcile(split.get_instance(),
+                                             reconciled)
+        #
+        # Are we done?
+        #
+        balance = float(entry['Balance'])
+        if balance == 0.0:
+            break
+        entry = reader.next()
+    #
+    # Finalize and this one is done.
+    #
+    trans.CommitEdit()
+
+#
+# Check args and open files
+#
+#
+# Here we do the argparsery
+#
+def setupargs():
+    p = argparse.ArgumentParser()
+    p.add_argument('-m', '--mapfile', required = False, default = None,
+                   help = 'Name of account-name remapping file')
+    p.add_argument('-o', '--override', required = False, action = 'store_true',
+                   help = 'Override lock on the gnucash file', default = False)
+    p.add_argument('csvfile', help = 'The CSV file to process')
+    p.add_argument('gcfile', help = 'The gnucash file to import into')
+    return p
+args = setupargs().parse_args()
+
+try:
+    tfile = open(args.csvfile, 'r')
+except IOError, e:
+    print 'Unable to open %s, %s' % (args.csvfile, e)
+    sys.exit(1)
+#
+# Load the mapfile if there is one.
+#
+if args.mapfile:
+    remap.load_mapfile(args.mapfile)
+#
+# Set up with gnucash
+#
+session = gnucash.Session(args.gcfile, ignore_lock = args.override)
+book = session.book
+dollars = book.get_table().lookup('CURRENCY', 'USD')
+root_acct = book.get_root_account()
+
+#
+# Plow through the data.
+#
+reader = csv.DictReader(tfile)
+while True:
+    try:
+        ReadTransaction(reader)
+    except StopIteration:
+        break
+
+session.save()
+session.end()
