@@ -24,7 +24,7 @@ SCALE = 1000
 def GCVal(value):
     dollars, cents = map(int, value.split('.'))
     ival = dollars*SCALE
-    if ival > 0:
+    if value[0] != '-':
         ival += cents*(SCALE/100)
     else:
         ival -= cents*(SCALE/100)
