@@ -24,6 +24,7 @@ from gnucash import gnucash_business, gnucash_core_c
 #
 AccountTypeMap = {
     'BANK':	gnucash.ACCT_TYPE_BANK,
+    'CCARD':	gnucash.ACCT_TYPE_CREDIT,
     'OCASSET':	gnucash.ACCT_TYPE_ASSET,
     'OASSET':	gnucash.ACCT_TYPE_ASSET,
     'FIXASSET':	gnucash.ACCT_TYPE_ASSET,
