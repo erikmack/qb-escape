@@ -22,6 +22,7 @@ from gnucash import gnucash_business, gnucash_core_c
 #
 SCALE = 1000
 def GCVal(value):
+    value=value.replace(',', '')
     dollars, cents = map(int, value.split('.'))
     ival = dollars*SCALE
     if value[0] != '-':
