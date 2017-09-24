@@ -101,9 +101,11 @@ def ReadTransaction(reader):
                                              reconciled)
         #
         # Are we done?
+        # The last entry will be '0.00' as a string. If we do a numeric
+        # conversion to test against zero, we'd have to worry about commas
+        # and other issues, so opt for similicity.
         #
-        balance = float(entry['Balance'])
-        if balance == 0.0:
+        if entry['Balance'] == '0.00':
             break
         entry = reader.next()
     #
