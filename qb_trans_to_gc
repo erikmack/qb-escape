@@ -44,6 +44,12 @@ def LookupAccount(path):
 
 def SetDate(trans, date):
     month, day, year = map(int, date.split('/'))
+    # Handle old, two digit dates with an arbitrary 1980 pivot
+    if year < 100:
+        if year < 80:
+            year = year + 2000;
+        else:
+            year = year + 1900
     trans.SetDate(day, month, year)
 
 def ReadTransaction(reader):
