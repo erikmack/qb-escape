@@ -5,6 +5,7 @@
 # This program may be distributed under the terms of the GNU General
 # Public License, version 2 or later.
 #
+from __future__ import print_function
 
 class IIF_list:
     def __init__(self, name, fields):
@@ -14,7 +15,7 @@ class IIF_list:
 
 def HeaderLine(line):
     if line[0] != '!':
-        print 'Funky line "%s"' % (line)
+        print('Funky line "%s"' % (line))
         return None
     sline = line[1:].split('\t')
     return IIF_list(sline[0], sline[1:])
@@ -27,7 +28,7 @@ def strip_quotes(s):
 def IIF_Entry(list, line):
     sline = line.split('\t')
     if sline[0] != list.name:
-        print 'List %s, line starts with %s!' % (list.name, sline[0])
+        print('List %s, line starts with %s!' % (list.name, sline[0]))
     else:
         e = { }
         for i in range(0, len(list.fields)):
