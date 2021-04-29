@@ -43,7 +43,7 @@ def lookup_acct_type(type):
     try:
         return AccountTypeMap[type]
     except KeyError:
-        print 'Unknown QB account type:', type
+        print('Unknown QB account type:', type)
         return gnucash.ACCT_TYPE_EXPENSE  # Not sure what else to do
 
 #
@@ -106,7 +106,7 @@ def find_parent(name, root):
         acct = fixup_acct_name(acct)
         parent = parent.lookup_by_name(acct)
         if not parent:
-            print 'Failed to find container account', acct
+            print('Failed to find container account', acct)
             return root, sname[-1]
     return parent, sname[-1]
 
@@ -149,7 +149,7 @@ def import_accounts(list):
         # Don't make an account that already exists.
         #
         if parent.lookup_by_name(name):
-            print 'Account %s already exists' % (name)
+            print('Account %s already exists' % (name))
             continue
         #
         # Make the account.
@@ -246,7 +246,7 @@ Reparent = args.reparent
 
 try:
     lists = iif.read_IIF(open(args.iif, 'r'))
-except IOError, e:
+except IOError as e:
     croak('Unable to open %s, %s' % (args.iif, e))
 #
 # Open the session.  But if we're creating the file, we have to give it

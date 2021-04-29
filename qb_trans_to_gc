@@ -23,7 +23,7 @@ from gnucash import gnucash_business, gnucash_core_c
 SCALE = 1000
 def GCVal(value):
     value=value.replace(',', '')
-    dollars, cents = map(int, value.split('.'))
+    dollars, cents = list(map(int, value.split('.')))
     ival = dollars*SCALE
     if value[0] != '-':
         ival += cents*(SCALE/100)
@@ -43,7 +43,7 @@ def LookupAccount(path):
     return acct
 
 def SetDate(trans, date):
-    month, day, year = map(int, date.split('/'))
+    month, day, year = list(map(int, date.split('/')))
     # Handle old, two digit dates with an arbitrary 1980 pivot
     if year < 100:
         if year < 80:
@@ -53,7 +53,7 @@ def SetDate(trans, date):
     trans.SetDate(day, month, year)
 
 def ReadTransaction(reader):
-    entry = reader.next()
+    entry = next(reader)
     #
     # QB helpfully puts in a couple of crap lines with an empty
     # name.  Drop them.
@@ -89,7 +89,7 @@ def ReadTransaction(reader):
         # simply ignore it.
         #
         if not entry['Amount']:
-            entry = reader.next()
+            entry = next(reader)
             continue
         #
         # Put together the split info.
@@ -98,7 +98,7 @@ def ReadTransaction(reader):
         split.SetValue(GCVal(entry['Amount']))
         account = LookupAccount(remap.remap(entry['Account']))
         if not account:
-            print 'Unknown account', entry['Account']
+            print('Unknown account', entry['Account'])
             account = LookupAccount('Miscellaneous')
         split.SetAccount(account)
         split.SetMemo(entry['Memo'])
@@ -113,7 +113,7 @@ def ReadTransaction(reader):
         #
         if entry['Balance'] == '0.00':
             break
-        entry = reader.next()
+        entry = next(reader)
     #
     # Finalize and this one is done.
     #
@@ -138,8 +138,8 @@ args = setupargs().parse_args()
 
 try:
     tfile = open(args.csvfile, 'r')
-except IOError, e:
-    print 'Unable to open %s, %s' % (args.csvfile, e)
+except IOError as e:
+    print('Unable to open %s, %s' % (args.csvfile, e))
     sys.exit(1)
 #
 # Load the mapfile if there is one.
