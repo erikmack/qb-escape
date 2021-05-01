@@ -16,6 +16,7 @@ import sys, csv, argparse
 import remap
 import gnucash
 from gnucash import gnucash_business, gnucash_core_c
+import re
 
 #
 # Turn a float value into the gnucash equivalent.
@@ -29,7 +30,7 @@ def GCVal(value):
         ival += cents*(SCALE/100)
     else:
         ival -= cents*(SCALE/100)
-    return gnucash.GncNumeric(ival, SCALE)
+    return gnucash.GncNumeric(int(ival), SCALE)
 #
 # Gnucash implements an account hierarchy but makes us walk it
 # ourselves.
@@ -52,8 +53,10 @@ def SetDate(trans, date):
             year = year + 1900
     trans.SetDate(day, month, year)
 
+acctregex = re.compile("^(\d*) - (.*)")
 def ReadTransaction(reader):
     entry = next(reader)
+    print(entry)
     #
     # QB helpfully puts in a couple of crap lines with an empty
     # name.  Drop them.
@@ -96,11 +99,18 @@ def ReadTransaction(reader):
         #
         split = gnucash.Split(book)
         split.SetValue(GCVal(entry['Amount']))
-        account = LookupAccount(remap.remap(entry['Account']))
-        if not account:
+
+        matches = acctregex.match(entry['Account'])
+        if matches is None or len(matches.groups()) == 0:
             print('Unknown account', entry['Account'])
             account = LookupAccount('Miscellaneous')
+            entry = next(reader)
+            continue
+
+        code = matches.group(1)
+        account = root_acct.lookup_by_code(code)
         split.SetAccount(account)
+
         split.SetMemo(entry['Memo'])
         split.SetParent(trans)
         gnucash_core_c.xaccSplitSetReconcile(split.get_instance(),
@@ -149,7 +159,7 @@ if args.mapfile:
 #
 # Set up with gnucash
 #
-session = gnucash.Session(args.gcfile, ignore_lock = args.override)
+session = gnucash.Session(args.gcfile, mode=gnucash.SessionOpenMode.SESSION_NORMAL_OPEN)
 book = session.book
 dollars = book.get_table().lookup('CURRENCY', 'USD')
 root_acct = book.get_root_account()

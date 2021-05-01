@@ -151,6 +151,18 @@ def import_accounts(list):
         if parent.lookup_by_name(name):
             print('Account %s already exists' % (name))
             continue
+
+        accnum = entry['ACCNUM']
+        description = entry['DESC']
+        hidden = False
+        if entry['HIDDEN'] == "Y":
+            hidden = True
+
+        placeholder = False
+        if description == "header":
+            placeholder = True
+            description = ""
+
         #
         # Make the account.
         #
@@ -159,6 +171,10 @@ def import_accounts(list):
         acct.SetType(atype)
         acct.SetName(name)
         acct.SetCommodity(dollars)
+        acct.SetCode(accnum)
+        acct.SetDescription(description)
+        acct.SetHidden(hidden)
+        acct.SetPlaceholder(placeholder)
         parent.append_child(acct)
         acct.CommitEdit()
 #
@@ -255,8 +271,7 @@ except IOError as e:
 filename = args.gcf
 if args.create:
     filename = 'xml://%s/%s' % (os.getcwd(), filename)
-session = gnucash.Session(filename, ignore_lock = args.override,
-                          is_new = args.create)
+session = gnucash.Session(filename, mode=gnucash.SessionOpenMode.SESSION_NEW_STORE)
 
 #
 # Load the mapfile if there is one.

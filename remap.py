@@ -29,7 +29,7 @@ def remap(acct):
     try:
         return Mappings[acct]
     except KeyError:
-        smap = acct.split(':')
+        smap = acct.split(' - ')
         try:
             return Mappings[smap[-1]]
         except KeyError:
