@@ -1,5 +1,3 @@
-TODO: update instructions to talk about using Journal, rather than find report.
-
 This is a set of simple scripts for getting data exported from QuickBooks into a free accounting system, started by Jonathan Corbet (corbet@lwn.net). They only support GnuCash for now; that is likely to change in the future.  For details on how they work and how to get your data out of QuickBooks, have a look at this article:
 
     https://lwn.net/Articles/729087/
