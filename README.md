@@ -102,7 +102,7 @@ In a terminal window, let's import the iif file and create a new GNUCash file (w
 
 - Run `qb_iif_to_gc /my/path/to/quickbooks_exported_accounts-customers-vendors.iif /my/path/to/gnucash_accountbook.gcf`
 
-Did it run OK? Feel free to file an issue, or discuss on https://lists.gnucash.org/
+Did it run OK? Feel free to file an issue, or discuss on https://lists.gnucash.org/ . You can also try running it with a [sample IIF file](https://gist.github.com/seltzered/b124ba5c4f118d46dec4cc3da1febe06). 
 
 Assuming it ran without errors, you should have an initial working `gnucash_accountbook.gcf` file. Try opening it, and going see the accounts imported so far (e.g. in GnuCash try going to 'Business > Customer > Customer Overview')
 
