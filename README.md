@@ -1,5 +1,3 @@
-TODO: update instructions to talk about using Journal, rather than find report.
-
 This is a set of simple scripts for getting data exported from QuickBooks into a free accounting system, started by Jonathan Corbet (corbet@lwn.net). They only support GnuCash for now; that is likely to change in the future.  For details on how they work and how to get your data out of QuickBooks, have a look at this article:
 
     https://lwn.net/Articles/729087/
@@ -87,7 +85,7 @@ NOTE: This path of installing MacPorts depends on also installing developer tool
 
 **Redhat/Fedora-based Linux**: The rpm package for GnuCash should include python bindings, so run `sudo dnf install gnucash` 
 
-(NOTE: You might need to modify a line in the scripts to point to the appropriate gnucash bindings package. For example, in a fedora installation I needed to 
+(NOTE: You might need to modify a line in the scripts to point to the appropriate gnucash bindings package. For example, in a fedora 37 installation I needed to uncomment & modify the line `# sys.path.insert(0, "/my/path/to/site-packages/gnucash")` in the scripts to be `sys.path.insert(0, "/usr/lib64/python3.11/site-packages/gnucash")` )
 
 ### Downloading the scripts
 On the computer with GnuCash, we need to download the scripts offered on this webpage you're reading this on. Assuming it's github, there should be a green 'Code' button with options to either clone this repository (using GIT) or 'download ZIP'.
