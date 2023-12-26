@@ -1,4 +1,4 @@
-TODO: update instructions to talk about using Journal, rather than find report.
+*NOTE: This script was last updated using GNUCash 4.x and hasn't been tested successfully yet on GNUCash 5.x. Consider running on [GNUCash 4.14](https://github.com/Gnucash/gnucash/releases/tag/4.14) and submit issues/PRs as needed!*
 
 This is a set of simple scripts for getting data exported from QuickBooks into a free accounting system, started by Jonathan Corbet (corbet@lwn.net). They only support GnuCash for now; that is likely to change in the future.  For details on how they work and how to get your data out of QuickBooks, have a look at this article:
 
