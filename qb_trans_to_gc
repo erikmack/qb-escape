@@ -57,8 +57,10 @@ def SetDate(trans, date):
             year = year + 1900
     trans.SetDate(day, month, year)
 
-acctregex = regex.compile(r'(?<=^\d* [—-] )(.*)')
-coderegex = regex.compile(r'^\d*')
+#acctregex = regex.compile(r'(?<=^\d* [—-] )(.*)')
+#coderegex = regex.compile(r'^\d*')
+acctregex = regex.compile(r'^(.+)$')
+
 def ReadTransaction(reader):
     entry = next(reader)
     print(entry)
@@ -83,17 +85,18 @@ def ReadTransaction(reader):
     trans.BeginEdit()
     trans.SetCurrency(dollars)
 
-    description = ( "(qb: " +
-                    "Type: " +  entry['Type'])
-
-    try:
-        if entry['Num']:
-            description = description + " Num: " + entry['Num']
-    except KeyError:
-        pass
-
-    description = description + ")"
+    # Use the 'Name' field for the main description
+    description = entry['Name'] if entry['Name'] else "Unknown Payee"
     trans.SetDescription(description)
+
+    # Create a memo with the type and number information
+    memo = f"(qb: Type: {entry['Type']}"
+    if entry.get('Num'):  # Using .get() to avoid KeyError
+        memo += f" Num: {entry['Num']}"
+    memo += ")"
+
+    # Set the memo for the transaction
+    trans.SetNotes(memo)
 
     trans.SetNum(entry['Trans #'])
     SetDate(trans, entry['Date'])
@@ -161,17 +164,23 @@ def ReadTransaction(reader):
             split.SetAmount(GCVal(credit) * -1.0)
 
         acct_matches = acctregex.search(entry['Account'])
-        code_matches = coderegex.search(entry['Account'])
-        if ((acct_matches is None) or 
-            (len(acct_matches.groups()) == 0) or 
-            (code_matches is None)):
-            print('Unknown account', entry['Account'])
-            account = LookupAccount('Miscellaneous')
-            entry = next(reader)
-            continue
+        if acct_matches and len(acct_matches.groups()) > 0:
+            account_name = acct_matches.group(1)
+            account = LookupAccount(account_name)
+            if not account:
+                print(f"Warning: Unknown account '{account_name}'. Using 'Uncategorized'.")
+                account = LookupAccount('Uncategorized')
+                if not account:
+                    account = root_acct.lookup_by_name('Uncategorized')
+                    if not account:
+                        account = gnucash.Account(book)
+                        account.SetName('Uncategorized')
+                        account.SetType(gnucash.ACCT_TYPE_EXPENSE)
+                        root_acct.append_child(account)
+        else:
+            print(f"Invalid account format: {entry['Account']}")
+            account = LookupAccount('Uncategorized')
 
-        code = code_matches.group(0)
-        account = root_acct.lookup_by_code(code)
         split.SetAccount(account)
 
         qb_migration_memo = entry['Memo']

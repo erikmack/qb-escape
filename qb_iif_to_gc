@@ -277,9 +277,12 @@ except IOError as e:
 # a full path or it barfs at us.
 #
 filename = args.gcf
+
 if args.create:
     filename = 'xml://%s/%s' % (os.getcwd(), filename)
-session = gnucash.Session(filename, mode=gnucash.SessionOpenMode.SESSION_NEW_STORE)
+    session = gnucash.Session(filename, mode=gnucash.SessionOpenMode.SESSION_NEW_STORE)
+else:
+    session = gnucash.Session(filename, mode=gnucash.SessionOpenMode.SESSION_NORMAL_OPEN)
 
 #
 # Load the mapfile if there is one.
